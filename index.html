@@ -8,7 +8,7 @@
         
         .banner { 
             width: 900px; /* Slightly wider to accommodate the much larger text */
-            height: 220px; /* Slightly taller to fit the larger fonts */
+            height: 250px; /* Slightly taller to fit the larger fonts */
             display: flex; 
             align-items: center; 
             padding: 0 60px; 
@@ -91,7 +91,7 @@
 <script>
     function updateTime() {
         const now = new Date();
-        document.getElementById('clock').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+        document.getElementById('clock').innerText = now.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'});
     }
 
     async function getWeather() {
