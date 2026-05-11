@@ -27,7 +27,7 @@
             -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);
         }
 
-        /* --- Very Slow, Ambient Movement --- */
+        /* Time Banner - Blue Glow */
         .time-banner {
             background: radial-gradient(circle, rgba(0,119,190,0.9) 0%, rgba(0,119,190,0) 85%);
             font-family: 'Montserrat', sans-serif; 
@@ -37,6 +37,7 @@
         }
         .time-banner .content { font-size: 8.5rem; } 
 
+        /* Weather Banner - Orange Glow */
         .weather-banner {
             background: radial-gradient(circle, rgba(255,140,0,0.7) 0%, rgba(255,140,0,0) 85%);
             font-family: 'Montserrat', sans-serif; 
@@ -45,6 +46,7 @@
             order: 2;
         }
 
+        /* Calendar Banner - Purple Glow */
         .upcoming-banner {
             background: radial-gradient(circle, rgba(155, 89, 182, 0.7) 0%, rgba(155, 89, 182, 0) 85%);
             font-family: 'Montserrat', sans-serif;
@@ -53,14 +55,15 @@
             order: 3;
         }
 
+        /* Extra wide off-screen distance to hide the "glow" completely */
         @keyframes flyLeft { 
-            from { transform: translateX(-1150px); } 
+            from { transform: translateX(-1400px); } 
             to { transform: translateX(100vw); } 
         }
 
         @keyframes flyRight { 
             from { transform: translateX(100vw); } 
-            to { transform: translateX(-1150px); } 
+            to { transform: translateX(-1400px); } 
         }
 
         .label { 
@@ -126,28 +129,36 @@
         }, 1500);
     }
 
-    // --- Dynamic Position Swapping (As they leave the screen) ---
+    // --- Lane Swapping Logic ---
     let orderState = 1;
+    let tripCount = 0;
     const timeBanner = document.getElementById('time-slot');
     const weatherBanner = document.getElementById('weather-slot');
     const eventBanner = document.getElementById('event-slot');
 
-    // This function runs every time an animation repeats (starts its journey back)
     timeBanner.addEventListener('animationiteration', () => {
-        orderState = (orderState % 3) + 1;
+        tripCount++;
         
-        if (orderState === 1) {
-            timeBanner.style.order = 1;
-            weatherBanner.style.order = 2;
-            eventBanner.style.order = 3;
-        } else if (orderState === 2) {
-            timeBanner.style.order = 2;
-            weatherBanner.style.order = 3;
-            eventBanner.style.order = 1;
-        } else {
-            timeBanner.style.order = 3;
-            weatherBanner.style.order = 1;
-            eventBanner.style.order = 2;
+        // Only swap when the tripCount is even.
+        // In "alternate" mode: 
+        // Trip 1 = -1400 to 100vw (Visible at end)
+        // Trip 2 = 100vw back to -1400 (Hidden at end)
+        if (tripCount % 2 === 0) {
+            orderState = (orderState % 3) + 1;
+            
+            if (orderState === 1) {
+                timeBanner.style.order = 1;
+                weatherBanner.style.order = 2;
+                eventBanner.style.order = 3;
+            } else if (orderState === 2) {
+                timeBanner.style.order = 2;
+                weatherBanner.style.order = 3;
+                eventBanner.style.order = 1;
+            } else {
+                timeBanner.style.order = 3;
+                weatherBanner.style.order = 1;
+                eventBanner.style.order = 2;
+            }
         }
     });
 
