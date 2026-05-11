@@ -4,11 +4,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&display=swap" rel="stylesheet">
     <style>
         body { background: black; margin: 0; overflow: hidden; color: white; }
-        .container { display: flex; flex-direction: column; justify-content: space-around; height: 100vh; }
+        
+        /* Flex container handles the 3 slots */
+        .container { 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-around; 
+            height: 100vh; 
+        }
         
         .banner { 
-            width: 900px; /* Slightly wider to accommodate the much larger text */
-            height: 250px; /* Slightly taller to fit the larger fonts */
+            width: 1000px; 
+            height: 220px; 
             display: flex; 
             align-items: center; 
             padding: 0 60px; 
@@ -21,18 +28,23 @@
             -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);
         }
 
+        /* TIME BANNER - Larger than others */
         .time-banner {
-            background: radial-gradient(circle, rgba(0,119,190,0.8) 0%, rgba(0,119,190,0) 85%);
+            background: radial-gradient(circle, rgba(0,119,190,0.9) 0%, rgba(0,119,190,0) 85%);
             font-family: 'Montserrat', sans-serif; 
             color: #00e5ff;
+            z-index: 10;
             animation: flyLeft 22s ease-in-out infinite alternate;
         }
+        
+        .time-banner .label { font-size: 3rem; }
+        .time-banner .content { font-size: 7rem; }
 
+        /* OTHER BANNERS */
         .weather-banner {
             background: radial-gradient(circle, rgba(255,140,0,0.8) 0%, rgba(255,140,0,0) 85%);
             font-family: 'Montserrat', sans-serif; 
             color: #ffb74d;
-            align-self: flex-end;
             animation: flyRight 26s ease-in-out infinite alternate;
         }
 
@@ -40,44 +52,42 @@
             background: radial-gradient(circle, rgba(155, 89, 182, 0.8) 0%, rgba(155, 89, 182, 0) 85%);
             font-family: 'Montserrat', sans-serif;
             color: #e1bee7;
-            animation: flyLeft 24s ease-in-out infinite alternate, pulse 4s infinite alternate;
+            animation: flyLeft 24s ease-in-out infinite alternate;
         }
 
-        #event { transition: opacity 1s ease-in-out; opacity: 1; }
-
         @keyframes flyLeft { 
-            from { left: -850px; } 
-            to { left: calc(100vw - 50px); } 
+            from { left: -1000px; } 
+            to { left: 100vw; } 
         }
 
         @keyframes flyRight { 
-            from { right: -850px; } 
-            to { right: calc(100vw - 50px); } 
+            from { right: -1000px; } 
+            to { right: 100vw; } 
         }
-        
-        @keyframes pulse { from { opacity: 0.7; } to { opacity: 1; } }
 
-        /* Label size set to 2rem and content size set to 4rem */
         .label { 
-            font-size: 2rem; 
+            font-size: 1.8rem; 
             text-transform: uppercase; 
             letter-spacing: 6px; 
             font-weight: 800; 
             opacity: 0.8; 
             display: block; 
-            margin-bottom: 10px; 
+            margin-bottom: 5px; 
         }
+        
         .content { 
-            font-size: 4rem; 
+            font-size: 3.5rem; 
             text-shadow: 2px 2px 25px rgba(0,0,0,0.9); 
             line-height: 1.1; 
             font-weight: 800; 
+            white-space: nowrap;
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="banner time-banner fuzzy">
+
+<div class="container" id="main-container">
+    <div class="banner time-banner fuzzy" id="time-slot">
         <div><span class="label">Current Time</span><div class="content" id="clock">00:00:00</div></div>
     </div>
     <div class="banner weather-banner fuzzy">
@@ -89,11 +99,13 @@
 </div>
 
 <script>
+    // --- Clock Logic ---
     function updateTime() {
         const now = new Date();
-        document.getElementById('clock').innerText = now.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit', second:'2-digit'});
+        document.getElementById('clock').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
     }
 
+    // --- Weather Logic ---
     async function getWeather() {
         try {
             const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=45.6387&longitude=-122.6615&current_weather=true&temperature_unit=fahrenheit');
@@ -105,26 +117,44 @@
         }
     }
 
+    // --- Event Cycle Logic ---
     const events = ["Camino Departure: Aug 21", "Cali for the 4th", "Retirement Milestone: Aug 2031"];
-    let i = 0;
-    const eventElement = document.getElementById('event');
-
+    let eventIdx = 0;
     function cycleEvents() {
-        eventElement.style.opacity = 0;
+        const el = document.getElementById('event');
+        el.style.opacity = 0;
         setTimeout(() => {
-            i = (i + 1) % events.length;
-            eventElement.innerText = events[i];
-            eventElement.style.opacity = 1;
+            eventIdx = (eventIdx + 1) % events.length;
+            el.innerText = events[eventIdx];
+            el.style.opacity = 1;
         }, 1000);
     }
 
+    // --- Position Shifting Logic ---
+    // This watches the animation cycle. Every time it hits the "start" (off-screen), 
+    // we move the Time Banner to a different spot in the flex order.
+    let currentPos = 0; 
+    const timeBanner = document.getElementById('time-slot');
+    const container = document.getElementById('main-container');
+
+    function shiftPosition() {
+        // Move the time banner to the end of the list, which cycles it through the flex layout
+        container.appendChild(timeBanner);
+    }
+
+    // Since the animation is ~22 seconds long, we trigger the shift 
+    // right when it's likely off-screen (every 22 seconds).
+    setInterval(shiftPosition, 22000);
+
+    // Initializations
     setInterval(updateTime, 1000);
     setInterval(cycleEvents, 10000);
     setInterval(getWeather, 600000); 
     
     updateTime();
     getWeather();
-    eventElement.innerText = events[0]; 
+    document.getElementById('event').innerText = events[0];
 </script>
+
 </body>
 </html>
